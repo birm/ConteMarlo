@@ -1,5 +1,6 @@
 ConteMarlo
 A "Monte-Carlo-Like" tester.
+https://pypi.python.org/pypi/contemarlo/
 -Ryan Birmingham
 
 The concept is simple (and probably already done better): detailed Monte-Carlo
