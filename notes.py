@@ -1,4 +1,4 @@
-import struct
+import struct, math
 """
 ConteMarlo
 A "Monte-Carlo-Like" tester.
@@ -42,8 +42,11 @@ class Resolver(Object):
         self.out_vec.extend(self.eval_layer(self.layer))
         self.layer = self.layer+1
 
-    def result(self,):
+    def result(self, n):
         # quickly order for linspace
+        # determine what fraction a position represents, make sure long
+        a = 2.0**math.ceil((math.log((n+1),2)))
+        return (2.0*(a-n-1)+1)/a
 
 class Distribution(Object):
     def __init__(name, *args, **kwargs):
