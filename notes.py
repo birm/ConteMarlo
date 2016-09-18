@@ -31,23 +31,59 @@ class Resolver(Object):
             self.high = kwargs["high"]
         else:
             self.high = (struct.calcsize("P") * 8)-1)
-        # Finish preparation for generator for giving it an internal position.
-        self.position = 1
+        # check dimensionality
+        if self.distribution.dimensionality > 1:
+            self.dimensionality = self.distribution.dimensionality
 
-    def next(self, n):
+    def next(self, safe=True):
         """A generator to return the next [x,f(x)] pair from distribution."""
-        a = 0.0
-        while (a <= self.max):
+        # disallow anyone to flood their memory in safe mode
+        while (self.position <= self.high or not safe):
             a = 2.0 ** math.ceil((math.log((self.position + 1), 2)))
             b = (2.0 * (a - self.position - 1) + 1) / a
             yield [a, self.distribution(a)]
-            self.postion = self.position+1
+        raise Warning("You have reached the end of safe mofe for next. " +
+                      "Consider using next(unsafe=False) if you're not" +
+                      " addresing all results in memory")
+
+class Resolver_md(Resolver):
+    def __init__(self, distribution, dimensionality, *args, **kwargs):
+        """Multidimensional version of resolver."""
+        # The normal resolver has init taken care of
+        Resolver.__init__(self, distribution, *args, **kwargs):
+        self.dimensionality = dimensionality
+
+    def next(self, safe=True):
+        """a n dimensional version of next_1d, with more gaps"""
+        # make a n-len list of generators
+        gen_list [0]*self.dimensionality
+        # make a n-len list of positions (to pass to dist)
+        tmp_in_list = [0]*self.dimensionality
+        # start with getting the generators initalized.
+        for i in range(1,self.dimensionality)
+            # get a generator for each dimension
+            gen_list[i]=Resolver.next
+            tmp_in_list[i] = next(gen_list[i])
+            # yield first result of 1/2 all
+        yield [tmp_in_list,self.distribution(tmp_in_list)]
+        # disallow anyone to flood their memory in safe mode
+        while (self.position <= self.high or not safe):
+            # which generator should we update?
+            a = 2.0 ** math.ceil((math.log((self.position + 1), 2)))
+            n = a % self.dimensionality
+            tmp_in_list[n] = gen_list[n]
+            # yield the new value pair
+            yield [tmp_in_list,self.distribution(tmp_in_list)]
+        raise Warning("You have reached the end of safe mofe for next. " +
+                      "Consider using next(unsafe=False) if you're not" +
+                      " addresing all results in memory")
+
 
 
 class Distribution(Object):
     def __init__(name, *args, **kwargs):
-        """Parse through and return a distributon object to call later.
-        Any distribution input space should be [0,1]. Scale after."""
+        """Parse through and return a distributon object to call later. """
+        # NOTE: Any distribution input space should be [0,1]. Scale after.
         supported = ["normal", "custom"]
         self.args=args
         self.kwargs=kwargs
@@ -60,6 +96,12 @@ class Distribution(Object):
             self.fcn = args[0]
         else:
             self.name = "custom"
+        # add dimensionality if requested.
+        if self.kwargs['dimensionality']:
+            # NOTE: a n dimensional distribution should accept a n-long list
+            self.dimensionality = self.kwargs['dimensionality']
+        else:
+            self.dimensionality = 1
         # call the proper construction function
         getattr(Distribution, self.name)()
 
