@@ -5,7 +5,6 @@ class Resolver(Object):
     def __init__(self, distribution, *args, **kwargs):
         """Parse through resolver inputs, and prepare for generator."""
         # check if is existing Distribution, else, make it once
-        raise FutureWarning ("ConteMarlo is not Finished or tested.") # TODO
         if isinstance(distribution, Distribution):
             self.distribution = distribution
         else if callable(distribution):
